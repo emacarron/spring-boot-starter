@@ -16,6 +16,7 @@
 
 package org.mybatis.spring.boot.autoconfigure;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -156,11 +157,13 @@ public class MybatisAutoConfiguration {
 
 			ClassPathMapperScanner scanner = new ClassPathMapperScanner(registry);
 
-			List<String> pkgs;
 			try {
-				pkgs = AutoConfigurationPackages.get(this.beanFactory);
+			  List<String> pkgs = AutoConfigurationPackages.get(this.beanFactory);
+			  List<String> mapperPackages = new ArrayList<String>(); 
 				for (String pkg : pkgs) {
-					log.debug("Found MyBatis auto-configuration package '" + pkg + "'");
+				  String mapperPackage = pkg + ".**.mapper";
+					log.debug("Found MyBatis auto-configuration package '" + mapperPackage + "'");
+					mapperPackages.add(mapperPackage);
 				}
 
 				if (this.resourceLoader != null) {
@@ -168,7 +171,7 @@ public class MybatisAutoConfiguration {
 				}
 
 				scanner.registerFilters();
-				scanner.doScan(pkgs.toArray(new String[pkgs.size()]));
+				scanner.doScan(StringUtils.toStringArray(mapperPackages));
 			}
 			catch (IllegalStateException ex) {
 				log.debug("Could not determine auto-configuration "
