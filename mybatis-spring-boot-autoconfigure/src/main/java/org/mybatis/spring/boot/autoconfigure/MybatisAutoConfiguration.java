@@ -78,7 +78,7 @@ import org.springframework.util.StringUtils;
 @AutoConfigureAfter(DataSourceAutoConfiguration.class)
 public class MybatisAutoConfiguration {
   
-  private static final String[] defaultPackageSuffixes = { "./**/mapper", "./**/repository", "./**/persistence" };
+  private static final String[] defaultPackageSuffixes = { ".**.mapper", ".**.repository", ".**.persistence" };
 
 	private static Log log = LogFactory.getLog(MybatisAutoConfiguration.class);
 
