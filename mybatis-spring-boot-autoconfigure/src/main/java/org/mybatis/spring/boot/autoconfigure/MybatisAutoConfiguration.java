@@ -77,6 +77,8 @@ import org.springframework.util.StringUtils;
 @EnableConfigurationProperties(MybatisProperties.class)
 @AutoConfigureAfter(DataSourceAutoConfiguration.class)
 public class MybatisAutoConfiguration {
+  
+  private static final String[] defaultPackageSuffixes = { "./**/mapper", "./**/repository", "./**/persistence" };
 
 	private static Log log = LogFactory.getLog(MybatisAutoConfiguration.class);
 
@@ -161,9 +163,11 @@ public class MybatisAutoConfiguration {
 			  List<String> pkgs = AutoConfigurationPackages.get(this.beanFactory);
 			  List<String> mapperPackages = new ArrayList<String>(); 
 				for (String pkg : pkgs) {
-				  String mapperPackage = pkg + ".**.mapper";
-					log.debug("Found MyBatis auto-configuration package '" + mapperPackage + "'");
-					mapperPackages.add(mapperPackage);
+				  for (String sufix : defaultPackageSuffixes) {
+				    String mapperPackage = pkg + sufix;
+					  log.debug("Found MyBatis auto-configuration package '" + mapperPackage + "'");
+					  mapperPackages.add(mapperPackage);
+				  }
 				}
 
 				if (this.resourceLoader != null) {
