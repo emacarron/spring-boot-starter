@@ -16,6 +16,8 @@
 
 package org.mybatis.spring.boot.autoconfigure;
 
+import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +34,6 @@ import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.mapper.ClassPathMapperScanner;
 import org.mybatis.spring.mapper.MapperFactoryBean;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -55,6 +56,10 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.core.type.classreading.MetadataReader;
+import org.springframework.core.type.classreading.MetadataReaderFactory;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -78,7 +83,7 @@ import org.springframework.util.StringUtils;
 @AutoConfigureAfter(DataSourceAutoConfiguration.class)
 public class MybatisAutoConfiguration {
   
-  private static final String[] defaultPackageSuffixes = { ".**.mapper", ".**.repository", ".**.persistence" };
+  private static final String[] defaultPackageSuffixes = { ".**.mapper", ".**.mappers", ".**.repository", ".**.repositories" };
 
 	private static Log log = LogFactory.getLog(MybatisAutoConfiguration.class);
 
@@ -173,8 +178,10 @@ public class MybatisAutoConfiguration {
 				if (this.resourceLoader != null) {
 					scanner.setResourceLoader(this.resourceLoader);
 				}
-
+				
 				scanner.registerFilters();
+				excludeJpaRepositories(scanner);
+			
 				scanner.doScan(StringUtils.toStringArray(mapperPackages));
 			}
 			catch (IllegalStateException ex) {
@@ -183,6 +190,44 @@ public class MybatisAutoConfiguration {
 			}
 		}
 
+		@SuppressWarnings("unchecked")
+    private void excludeJpaRepositories(ClassPathMapperScanner scanner) {
+		  
+		  try {
+		    Class<?> repository = Class.forName("org.springframework.data.repository.Repository");
+		    Class<? extends Annotation> repositoryDefinition = (Class<? extends Annotation>) Class.forName("org.springframework.data.repository.RepositoryDefinition");
+		    
+		    scanner.addExcludeFilter(new InterfaceTypeFilter(repository));
+		    scanner.addExcludeFilter(new AnnotationTypeFilter(repositoryDefinition));
+	      
+		  } catch (Exception ignored) {
+		    // no spring-data in the classpath
+		  }
+		  
+		}
+
+	  private static class InterfaceTypeFilter extends AssignableTypeFilter {
+
+	    /**
+	     * Creates a new {@link InterfaceTypeFilter}.
+	     * 
+	     * @param targetType
+	     */
+	    public InterfaceTypeFilter(Class<?> targetType) {
+	      super(targetType);
+	    }
+
+	    /*
+	     * (non-Javadoc)
+	     * @see org.springframework.core.type.filter.AbstractTypeHierarchyTraversingFilter#match(org.springframework.core.type.classreading.MetadataReader, org.springframework.core.type.classreading.MetadataReaderFactory)
+	     */
+	    @Override
+	    public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory) throws IOException {
+
+	      return metadataReader.getClassMetadata().isInterface() && super.match(metadataReader, metadataReaderFactory);
+	    }
+	  }
+		
 		@Override
 		public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 			this.beanFactory = beanFactory;

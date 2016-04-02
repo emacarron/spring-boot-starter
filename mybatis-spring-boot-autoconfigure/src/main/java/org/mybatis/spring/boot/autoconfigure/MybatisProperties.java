@@ -16,16 +16,15 @@
 
 package org.mybatis.spring.boot.autoconfigure;
 
-import org.apache.ibatis.session.ExecutorType;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.ibatis.session.ExecutorType;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 /**
  * Configuration properties for Mybatis.
